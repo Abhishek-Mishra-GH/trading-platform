@@ -32,6 +32,13 @@ Ensure you have Node.js and MongoDB installed locally.
 4. Start the server:
    - `node server.js` (Runs on port 5000)
 
+### Stripe deposit testing
+- Set `STRIPE_SECRET_KEY` to a Stripe **test** key (typically starts with `sk_test_`) and `STRIPE_WEBHOOK_SECRET` from your Stripe CLI/webhook endpoint.
+- `POST /api/wallet/deposit/initiate` now creates a Stripe Checkout Session and returns a hosted `checkoutUrl`.
+- The frontend redirects users to Stripe, then returns to `/wallet?stripe_status=success&session_id=...` after payment.
+- `POST /api/wallet/deposit/verify` validates the returned Checkout Session server-side and credits the wallet only when Stripe reports a paid session.
+- Webhook endpoint: `POST /api/wallet/stripe/webhook` (expects Stripe signature and raw body). It safely handles duplicate events and prevents double-credit.
+
 ### 3. Frontend Setup
 1. `cd frontend`
 2. `npm install`

@@ -10,7 +10,9 @@ const transactionSchema = new mongoose.Schema({
   fees: { type: Number, default: 0 },
   netAmount: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
-  paymentMethod: { type: String }
+  paymentMethod: { type: String },
+  stripePaymentIntentId: { type: String },
+  stripeCheckoutSessionId: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Transaction', transactionSchema);

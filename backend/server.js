@@ -15,6 +15,7 @@ const watchlistRoutes = require('./src/routes/watchlist');
 const walletRoutes = require('./src/routes/wallet');
 const chatbotRoutes = require('./src/routes/chatbot');
 const analyticsRoutes = require('./src/routes/analytics');
+const { handleStripeWebhook } = require('./src/controllers/walletController');
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,8 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+// Stripe signature verification requires the unparsed request body.
+app.post('/api/wallet/stripe/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 app.use(express.json());
 
 // Routes
