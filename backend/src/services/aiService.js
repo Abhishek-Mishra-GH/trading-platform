@@ -67,3 +67,25 @@ Cover: Sentiment, Key Risks, Recent Developments.`;
     return "Could not generate insight at this time.";
   }
 };
+
+exports.generatePortfolioInsight = async (snapshot) => {
+  try {
+    const prompt = `You are an institutional portfolio analyst.
+Given this portfolio snapshot, provide exactly one concise paragraph (4-6 sentences).
+Focus on risk-adjusted quality, diversification, concentration, and 2 practical rebalancing ideas.
+Avoid markdown, bullet points, and hype.
+Include a disclaimer sentence that this is not financial advice.
+
+Portfolio Snapshot:
+${JSON.stringify(snapshot)}`;
+
+    const result = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt
+    });
+
+    return (result.text || '').trim();
+  } catch (error) {
+    return '';
+  }
+};
