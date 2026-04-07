@@ -35,28 +35,58 @@ const riskTagForHolding = (weight, returnPct) => {
   return { text: 'Balanced', color: 'bg-blue-50 text-blue-700' };
 };
 
+const buildQuantBrief = (metrics, risk, holdingsCount) => {
+  const health = toNumber(metrics?.health_score);
+  const concentration = toNumber(metrics?.concentration_risk);
+  const diversification = toNumber(metrics?.diversification_score);
+  const sharpe = toNumber(metrics?.sharpe_ratio);
+  const sortino = toNumber(metrics?.sortino_ratio);
+  const drawdown = toNumber(metrics?.max_drawdown);
+  const volatility = toNumber(metrics?.volatility);
+  const largestPosition = toNumber(risk?.largestPosition);
+
+  const strengths = [];
+  const risks = [];
+  const actions = [];
+
+  if (sharpe >= 1) strengths.push(`Sharpe ratio ${sharpe.toFixed(2)} indicates efficient risk-adjusted returns.`);
+  if (diversification >= 70) strengths.push(`Diversification score ${diversification.toFixed(1)} suggests healthy spread.`);
+  if (sortino >= 1) strengths.push(`Sortino ratio ${sortino.toFixed(2)} signals downside risk control.`);
+  if (!strengths.length) strengths.push('Portfolio has measurable momentum but needs stronger risk-adjusted consistency.');
+
+  if (concentration >= 60 || largestPosition >= 30) risks.push(`Concentration is elevated (largest holding ${largestPosition.toFixed(2)}%).`);
+  if (Math.abs(drawdown) >= 18) risks.push(`Drawdown profile is deep at ${drawdown.toFixed(2)}%.`);
+  if (volatility >= 24) risks.push(`Volatility at ${volatility.toFixed(2)}% can increase P&L swings.`);
+  if (!risks.length) risks.push('No major risk spikes, but exposure drift should still be monitored weekly.');
+
+  if (largestPosition > 32) actions.push('Trim the largest position by 5-10% and redistribute to lower-correlated sectors.');
+  if (holdingsCount < 6) actions.push('Increase breadth to at least 6 holdings for stronger diversification resilience.');
+  if (sortino < 0.9) actions.push('Reduce downside capture by blending high-beta and defensive allocations.');
+  if (!actions.length) actions.push('Maintain current structure and rebalance monthly to keep risk targets stable.');
+
+  const summary = `Health score is ${health.toFixed(1)}/100 with ${holdingsCount} active positions. Concentration risk is ${concentration.toFixed(1)}% and volatility is ${volatility.toFixed(2)}%, while Sharpe/Sortino stand at ${sharpe.toFixed(2)}/${sortino.toFixed(2)}. This is a statistical portfolio diagnostic and not financial advice.`;
+
+  return { summary, strengths, risks, actions };
+};
+
 export default function PortfolioPage() {
   const { portfolio, fetchPortfolio, loading } = usePortfolioStore();
   const [metrics, setMetrics] = useState(null);
   const [risk, setRisk] = useState(null);
-  const [aiBrief, setAIBrief] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
   const loadPortfolioIntelligence = async () => {
     setAnalysisLoading(true);
     try {
-      const [metricsRes, riskRes, aiRes] = await Promise.all([
+      const [metricsRes, riskRes] = await Promise.all([
         api.get('/analytics/metrics'),
-        api.get('/analytics/risk-analysis'),
-        api.get('/analytics/ai-portfolio-analysis')
+        api.get('/analytics/risk-analysis')
       ]);
       setMetrics(metricsRes.data);
       setRisk(riskRes.data);
-      setAIBrief(aiRes.data);
     } catch (error) {
       setMetrics(null);
       setRisk(null);
-      setAIBrief(null);
     } finally {
       setAnalysisLoading(false);
     }
@@ -111,6 +141,8 @@ export default function PortfolioPage() {
     ];
   }, [metrics]);
 
+  const quantBrief = useMemo(() => buildQuantBrief(metrics, risk, holdings.length), [metrics, risk, holdings.length]);
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center h-full">
@@ -158,7 +190,7 @@ export default function PortfolioPage() {
         <div>
           <h1 className="text-2xl font-black">Portfolio Intelligence</h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Multi-factor analysis with AI-backed risk and allocation diagnostics.
+            Multi-factor analysis with statistical risk and allocation diagnostics.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -168,7 +200,7 @@ export default function PortfolioPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition hover:bg-slate-50 disabled:opacity-70"
             style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
           >
-            <Sparkles size={15} /> {analysisLoading ? 'Refreshing...' : 'Refresh AI'}
+            <Sparkles size={15} /> {analysisLoading ? 'Refreshing...' : 'Refresh Insights'}
           </button>
           <button className="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold transition hover:bg-slate-50" style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}>
             <Download size={15} /> Export
@@ -189,33 +221,30 @@ export default function PortfolioPage() {
         <div className="xl:col-span-2 rounded-xl border p-5 space-y-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2">
             <BrainCircuit size={17} style={{ color: 'var(--primary)' }} />
-            <h3 className="text-sm font-bold uppercase tracking-wider">AI Strategy Brief</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Quant Strategy Brief</h3>
           </div>
           <p className="text-sm leading-6" style={{ color: 'var(--text-primary)' }}>
-            {aiBrief?.summary || 'AI insight will appear once analytics data is available for this portfolio.'}
+            {quantBrief.summary}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--border)' }}>
               <p className="text-xs font-bold uppercase mb-2" style={{ color: '#16A34A' }}>Strengths</p>
-              {(aiBrief?.strengths || []).slice(0, 3).map((item) => (
+              {quantBrief.strengths.slice(0, 3).map((item) => (
                 <p key={item} className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>• {item}</p>
               ))}
-              {!aiBrief?.strengths?.length && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No strengths available yet.</p>}
             </div>
             <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--border)' }}>
               <p className="text-xs font-bold uppercase mb-2" style={{ color: '#D97706' }}>Risks</p>
-              {(aiBrief?.risks || []).slice(0, 3).map((item) => (
+              {quantBrief.risks.slice(0, 3).map((item) => (
                 <p key={item} className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>• {item}</p>
               ))}
-              {!aiBrief?.risks?.length && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No explicit risks detected.</p>}
             </div>
             <div className="rounded-lg p-3 border" style={{ borderColor: 'var(--border)' }}>
               <p className="text-xs font-bold uppercase mb-2" style={{ color: '#2563EB' }}>Actions</p>
-              {(aiBrief?.actions || []).slice(0, 3).map((item) => (
+              {quantBrief.actions.slice(0, 3).map((item) => (
                 <p key={item} className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>• {item}</p>
               ))}
-              {!aiBrief?.actions?.length && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No actions generated yet.</p>}
             </div>
           </div>
         </div>

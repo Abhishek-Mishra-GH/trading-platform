@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { usePortfolioStore } from '../store/portfolioStore';
 import {
   Activity,
   BarChart2,
@@ -38,26 +37,45 @@ const riskTone = (level) => {
   return { bg: '#F0FDF4', border: '#BBF7D0', text: '#166534' };
 };
 
+const buildQuantNarrative = (metrics, risk, holdingsCount) => {
+  const health = toNumber(metrics?.health_score);
+  const cagr = toNumber(metrics?.cagr);
+  const volatility = toNumber(metrics?.volatility);
+  const concentration = toNumber(metrics?.concentration_risk);
+  const largestPosition = toNumber(risk?.largestPosition);
+  const sharpe = toNumber(metrics?.sharpe_ratio);
+  const sortino = toNumber(metrics?.sortino_ratio);
+
+  const actions = [];
+  if (largestPosition > 32) actions.push('Reduce largest holding exposure and spread capital across lower-correlation names.');
+  if (concentration > 60) actions.push('Set sector-level caps to prevent concentration drift over time.');
+  if (sortino < 0.9) actions.push('Rebalance toward lower downside-beta holdings to improve downside capture.');
+  if (!actions.length) actions.push('Current distribution is stable; maintain monthly rebalance and monitor risk bands.');
+
+  return {
+    summary: `Health score is ${health.toFixed(1)}/100 across ${holdingsCount} holdings. CAGR is ${cagr.toFixed(2)}% with volatility at ${volatility.toFixed(2)}%, while Sharpe/Sortino are ${sharpe.toFixed(2)}/${sortino.toFixed(2)}. Concentration risk is ${concentration.toFixed(1)}% with largest position at ${largestPosition.toFixed(2)}%. This is a statistical diagnostic and not financial advice.`,
+    actions
+  };
+};
+
 export default function AnalyticsPage() {
-  const { portfolio, fetchPortfolio, loading } = usePortfolioStore();
   const [metrics, setMetrics] = useState(null);
   const [history, setHistory] = useState([]);
   const [heatmap, setHeatmap] = useState([]);
   const [sectorBreakdown, setSectorBreakdown] = useState([]);
   const [risk, setRisk] = useState(null);
-  const [aiBrief, setAIBrief] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const loadAnalytics = async () => {
     setRefreshing(true);
     try {
-      const [metricsRes, historyRes, heatmapRes, sectorRes, riskRes, aiRes] = await Promise.all([
+      const [metricsRes, historyRes, heatmapRes, sectorRes, riskRes] = await Promise.all([
         api.get('/analytics/metrics'),
         api.get('/analytics/portfolio-history'),
         api.get('/analytics/heatmap'),
         api.get('/analytics/sector-breakdown'),
-        api.get('/analytics/risk-analysis'),
-        api.get('/analytics/ai-portfolio-analysis')
+        api.get('/analytics/risk-analysis')
       ]);
 
       setMetrics(metricsRes.data);
@@ -65,23 +83,21 @@ export default function AnalyticsPage() {
       setHeatmap(heatmapRes.data || []);
       setSectorBreakdown(sectorRes.data || []);
       setRisk(riskRes.data);
-      setAIBrief(aiRes.data);
     } catch (error) {
       setMetrics(null);
       setHistory([]);
       setHeatmap([]);
       setSectorBreakdown([]);
       setRisk(null);
-      setAIBrief(null);
     } finally {
       setRefreshing(false);
+      setInitialLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPortfolio();
     loadAnalytics();
-  }, [fetchPortfolio]);
+  }, []);
 
   const monthlyReturns = metrics?.monthly_returns || [];
 
@@ -93,6 +109,7 @@ export default function AnalyticsPage() {
   const topHeatmap = useMemo(() => {
     return [...heatmap].sort((a, b) => b.weight_in_portfolio - a.weight_in_portfolio).slice(0, 10);
   }, [heatmap]);
+  const quantBrief = useMemo(() => buildQuantNarrative(metrics, risk, topHeatmap.length), [metrics, risk, topHeatmap.length]);
 
   const cards = [
     { label: 'CAGR', value: `${toNumber(metrics?.cagr).toFixed(2)}%`, color: '#16A34A', icon: TrendingUp },
@@ -103,10 +120,26 @@ export default function AnalyticsPage() {
     { label: 'Portfolio Health', value: `${toNumber(metrics?.health_score).toFixed(1)}/100`, color: '#D97706', icon: ShieldAlert }
   ];
 
-  if (loading || !metrics) {
+  if (initialLoading) {
     return (
       <div className="p-6 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
         <Activity size={16} className="animate-spin" /> Loading analytics intelligence...
+      </div>
+    );
+  }
+
+  if (!metrics) {
+    return (
+      <div className="p-6 space-y-3">
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Unable to load analytics right now.</p>
+        <button
+          onClick={loadAnalytics}
+          disabled={refreshing}
+          className="px-4 py-2 rounded-lg border text-sm font-semibold disabled:opacity-70"
+          style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
+        >
+          {refreshing ? 'Retrying...' : 'Retry'}
+        </button>
       </div>
     );
   }
@@ -119,7 +152,7 @@ export default function AnalyticsPage() {
         <div>
           <h1 className="text-2xl font-black">Advanced Analytics</h1>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Quant diagnostics, allocation intelligence, and AI generated portfolio commentary.
+            Quant diagnostics, allocation intelligence, and statistical portfolio commentary.
           </p>
         </div>
         <button
@@ -185,17 +218,16 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="rounded-xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>AI Intelligence Brief</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>Quant Insight Brief</h3>
           <p className="text-sm leading-6 mb-4" style={{ color: 'var(--text-primary)' }}>
-            {aiBrief?.summary || 'AI summary unavailable for the current snapshot.'}
+            {quantBrief.summary}
           </p>
           <div className="space-y-2">
-            {(aiBrief?.actions || []).slice(0, 3).map((item) => (
+            {quantBrief.actions.slice(0, 3).map((item) => (
               <div key={item} className="text-xs rounded-md p-2 border" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
                 {item}
               </div>
             ))}
-            {!aiBrief?.actions?.length && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No recommended actions yet.</p>}
           </div>
         </div>
       </div>
@@ -308,10 +340,10 @@ export default function AnalyticsPage() {
         <div>
           <p className="text-sm font-semibold" style={{ color: '#92400E' }}>Risk Disclaimer</p>
           <p className="text-sm mt-1" style={{ color: '#B45309' }}>
-            This dashboard combines model-based metrics with AI narrative guidance. Treat insights as decision support, not financial advice.
+            This dashboard uses model-based statistical metrics for decision support, not financial advice.
           </p>
           <p className="text-xs mt-2" style={{ color: '#B45309' }}>
-            Snapshot holdings: {portfolio?.holdings?.length || 0} | Generated: {aiBrief?.generatedAt ? new Date(aiBrief.generatedAt).toLocaleString('en-IN') : 'N/A'}
+            Snapshot holdings: {topHeatmap.length} | Updated: {new Date().toLocaleString('en-IN')}
           </p>
         </div>
       </div>

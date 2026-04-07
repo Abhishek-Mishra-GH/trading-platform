@@ -1,5 +1,4 @@
 const Portfolio = require('../models/Portfolio');
-const aiService = require('../services/aiService');
 
 const round = (value, decimals = 2) => {
   const n = Number(value);
@@ -255,7 +254,7 @@ const buildRuleBasedActions = (analytics, snapshot) => {
   if (topConcentration > 35) {
     actions.push('Trim your largest position by 5-10% and reallocate across 2-3 underweighted sectors.');
   }
-  if (analytics.gainers_ratio < 45) {
+  if (analytics.risk_breakdown.gainers_ratio < 45) {
     actions.push('Review underperforming holdings and set explicit stop-loss or thesis checkpoints.');
   }
   if (snapshot.holdings.length < 6) {
@@ -408,37 +407,13 @@ exports.getAIPortfolioAnalysis = async (req, res) => {
     if (!risks.length) risks.push('No immediate critical risk flags, but keep periodic rebalancing discipline.');
 
     const actions = buildRuleBasedActions(analytics, snapshot);
-    const fallbackSummary = buildRuleBasedPortfolioNarrative(analytics, snapshot);
-
-    let aiSummary = '';
-    try {
-      aiSummary = await aiService.generatePortfolioInsight({
-        healthScore: analytics.health_score,
-        cagr: analytics.cagr,
-        volatility: analytics.volatility,
-        sharpeRatio: analytics.sharpe_ratio,
-        sortinoRatio: analytics.sortino_ratio,
-        maxDrawdown: analytics.max_drawdown,
-        concentrationRisk: analytics.concentration_risk,
-        diversificationScore: analytics.diversification_score,
-        holdings: snapshot.holdings.slice(0, 8).map((holding) => ({
-          symbol: holding.symbol,
-          sector: holding.sector,
-          weightPct: round((holding.currentValue / (snapshot.currentValue || 1)) * 100, 2),
-          returnPct: round(holding.profitLossPercent, 2)
-        })),
-        topPerformers: analytics.top_performers.slice(0, 3).map((item) => item.symbol),
-        worstPerformers: analytics.worst_performers.slice(0, 3).map((item) => item.symbol)
-      });
-    } catch (error) {
-      aiSummary = '';
-    }
+    const summary = buildRuleBasedPortfolioNarrative(analytics, snapshot);
 
     res.json({
       generatedAt: new Date().toISOString(),
       healthScore: analytics.health_score,
       confidence: analytics.volatility > 25 ? 'medium' : 'high',
-      summary: aiSummary || fallbackSummary,
+      summary,
       strengths,
       risks,
       actions
@@ -450,6 +425,7 @@ exports.getAIPortfolioAnalysis = async (req, res) => {
 
 exports.stockRecommendation = async (req, res) => {
   try {
+    const aiService = require('../services/aiService');
     const insight = await aiService.generateStockInsight(req.params.symbol);
     res.json({ recommendation: insight });
   } catch (error) {
