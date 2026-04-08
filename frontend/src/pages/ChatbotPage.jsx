@@ -57,7 +57,7 @@ export default function ChatbotPage() {
               <Bot size={16} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>TradeSphere AI</p>
+              <p className="text-sm font-black" style={{ color: 'var(--text-primary)' }}>FinovaX AI</p>
               <p className="text-xs" style={{ color: 'var(--primary)' }}>●  Online</p>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function ChatbotPage() {
               <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'var(--bg-card)' }}>
                 <Zap size={32} style={{ color: 'var(--primary)' }} />
               </div>
-              <h2 className="text-lg font-black mb-2" style={{ color: 'var(--text-primary)' }}>Ask TradeSphere AI</h2>
+              <h2 className="text-lg font-black mb-2" style={{ color: 'var(--text-primary)' }}>Ask FinovaX AI</h2>
               <p className="text-sm text-center max-w-xs" style={{ color: 'var(--text-muted)' }}>
                 I have live access to your portfolio, wallet, and market data. Ask me anything!
               </p>

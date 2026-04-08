@@ -22,7 +22,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-bg-dark flex items-center justify-center p-4">
       <Toaster />
       <div className="w-full max-w-md bg-bg-card p-8 rounded-2xl shadow-xl border border-bg-surface">
-        <h2 className="text-3xl font-bold text-primary mb-6 text-center">Join TradeSphere</h2>
+        <h2 className="text-3xl font-bold text-primary mb-6 text-center">Join FinovaX</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm text-text-muted mb-1 block">Name</label>

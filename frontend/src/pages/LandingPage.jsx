@@ -24,7 +24,7 @@ export default function LandingPage() {
               <div className="w-10 h-10 bg-primary/20 flex items-center justify-center rounded-xl border border-primary/50">
                  <Bot className="text-primary" size={24}/>
               </div>
-              <span className="font-black text-2xl tracking-tighter">TradeSphere</span>
+              <span className="font-black text-2xl tracking-tighter">FinovaX</span>
             </div>
             
             <div className="flex items-center space-x-6">
@@ -59,7 +59,7 @@ export default function LandingPage() {
             </motion.h1>
             
             <motion.p variants={fadeIn} className="text-xl lg:text-2xl text-text-muted mb-12 font-medium leading-relaxed max-w-3xl mx-auto">
-              TradeSphere is the ultimate fintech platform. Execute trades, visualize analytics, and get personalized portfolio advice from our cutting-edge AI Agent in real-time.
+              FinovaX is the ultimate fintech platform. Execute trades, visualize analytics, and get personalized portfolio advice from our cutting-edge AI Agent in real-time.
             </motion.p>
             
             <motion.div variants={fadeIn} className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">

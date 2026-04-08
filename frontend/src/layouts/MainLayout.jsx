@@ -35,7 +35,7 @@ export default function MainLayout() {
         <div className="h-14 flex items-center px-5 border-b" style={{ borderColor: 'var(--border)' }}>
           <Zap size={20} className="mr-2" style={{ color: 'var(--primary)' }} />
           <span className="text-lg font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            TradeSphere
+            FinovaX
           </span>
         </div>
 

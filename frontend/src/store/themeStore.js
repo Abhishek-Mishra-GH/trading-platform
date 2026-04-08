@@ -19,6 +19,6 @@ export const useThemeStore = create(
         document.documentElement.classList.remove('dark');
       },
     }),
-    { name: 'tradesphere-theme' }
+    { name: 'finovax-theme' }
   )
 );

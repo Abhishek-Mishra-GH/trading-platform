@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import api from '../api/client';
 
 export const useChatStore = create((set, get) => ({
-  messages: [{ role: 'assistant', content: 'Hello! I am TradeSphere AI. How can I help you today?' }],
+  messages: [{ role: 'assistant', content: 'Hello! I am FinovaX AI. How can I help you today?' }],
   loading: false,
   sendMessage: async (text) => {
     const newMsg = { role: 'user', content: text };

@@ -1,6 +1,6 @@
-# 🚀 TradeSphere — Full-Stack AI Trading Platform MVP
+# 🚀 FinovaX — Full-Stack AI Trading Platform MVP
 
-TradeSphere is a clean, visually appealing, end-to-end working MVP for a stock and portfolio management platform integrated with Google Gemini AI.
+FinovaX is a clean, visually appealing, end-to-end working MVP for a stock and portfolio management platform integrated with Google Gemini AI.
 
 ## Features
 - **Authentication**: JWT-based auth with simulated 2FA and password recovery.
@@ -26,7 +26,7 @@ Ensure you have Node.js and MongoDB installed locally.
 1. `cd backend`
 2. `npm install`
 3. Copy `.env.example` to `.env` and fill in your keys:
-   - `MONGODB_URI=mongodb://localhost:27017/tradesphere`
+   - `MONGODB_URI=mongodb://localhost:27017/finovax`
    - `GEMINI_API_KEY=your_gemini_key`
    - `FINNHUB_API_KEY=your_finnhub_key`
 4. Start the server:
