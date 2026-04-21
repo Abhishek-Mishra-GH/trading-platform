@@ -116,6 +116,7 @@ export default function TradePage() {
   const [stockData, setStockData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [news, setNews] = useState([]);
+  const [recommendation, setRecommendation] = useState(null);
   const [loadingStock, setLoadingStock] = useState(true);
 
   const [chartType, setChartType] = useState('candlestick');
@@ -127,9 +128,9 @@ export default function TradePage() {
   const [limitPrice, setLimitPrice] = useState('');
   const [placingOrder, setPlacingOrder] = useState(false);
 
-  // Fetch stock quote + profile + news
   const fetchStock = useCallback(async (sym) => {
     setLoadingStock(true);
+    setRecommendation(null);
     try {
       const [quoteRes, newsRes] = await Promise.allSettled([
         api.get(`/stocks/${sym}/quote`),
@@ -137,6 +138,10 @@ export default function TradePage() {
       ]);
       if (quoteRes.status === 'fulfilled') setStockData(quoteRes.value.data);
       if (newsRes.status === 'fulfilled') setNews(newsRes.value.data || []);
+      
+      // Async fetch recommendation separately so price logic renders fast
+      api.get(`/stocks/${sym}/recommendation`).then(res => setRecommendation(res.data)).catch(console.error);
+
     } catch (e) { console.error(e); }
     setLoadingStock(false);
   }, []);
@@ -346,8 +351,8 @@ export default function TradePage() {
 
           {/* News */}
           <div
-            className="border-t overflow-y-auto flex-shrink-0"
-            style={{ maxHeight: '200px', borderColor: 'var(--border)', background: 'var(--bg-card)' }}
+            className="border-t overflow-y-auto shrink-0 relative custom-scrollbar"
+            style={{ height: '260px', borderColor: 'var(--border)', background: 'var(--bg-card)' }}
           >
             <div className="px-5 py-3 border-b font-semibold text-xs uppercase tracking-widest" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
               Latest News
@@ -496,13 +501,20 @@ export default function TradePage() {
             </button>
 
             {/* AI insight box */}
-            <div className="rounded-lg p-3 border" style={{ borderColor: '#E0F2FE', background: '#F0F9FF' }}>
-              <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: '#0284C7' }}>
-                <ShieldAlert size={12} /> AI Disclaimer
+            <div className="rounded-lg p-4 border transition" style={{ borderColor: recommendation ? (recommendation.recommendation === 'BUY' ? '#bbf7d0' : recommendation.recommendation === 'SELL' ? '#fecaca' : '#fef08a') : '#E0F2FE', background: recommendation ? (recommendation.recommendation === 'BUY' ? '#f0fdf4' : recommendation.recommendation === 'SELL' ? '#fef2f2' : '#fefce8') : '#F0F9FF' }}>
+              <p className="text-xs font-black mb-2 flex items-center gap-1.5 uppercase tracking-widest" style={{ color: recommendation ? (recommendation.recommendation === 'BUY' ? '#166534' : recommendation.recommendation === 'SELL' ? '#991b1b' : '#854d0e') : '#0284C7' }}>
+                <ShieldAlert size={14} /> AI Analyst: {recommendation ? recommendation.recommendation : 'Analyzing...'}
               </p>
-              <p className="text-xs leading-relaxed" style={{ color: '#0369A1' }}>
-                Orders execute at live NSE market prices. Check your wallet balance before trading.
-              </p>
+              {recommendation ? (
+                 <>
+                   <div className="w-full bg-slate-200 rounded-full h-1.5 mb-3">
+                     <div className="h-1.5 rounded-full" style={{ width: `${recommendation.confidence}%`, background: recommendation.recommendation === 'BUY' ? '#16A34A' : recommendation.recommendation === 'SELL' ? '#DC2626' : '#CA8A04' }}></div>
+                   </div>
+                   <p className="text-xs font-medium leading-relaxed opacity-90" style={{ color: recommendation.recommendation === 'BUY' ? '#14532D' : recommendation.recommendation === 'SELL' ? '#7F1D1D' : '#713F12' }}>{recommendation.reason}</p>
+                 </>
+              ) : (
+                <p className="text-xs leading-relaxed animate-pulse text-blue-800">Generating quantitative and fundamental insight using Gemini 3.1 Flash Lite...</p>
+              )}
             </div>
           </div>
         </div>

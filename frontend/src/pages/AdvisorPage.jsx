@@ -1,16 +1,29 @@
 import { AlertTriangle, ShieldCheck, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react';
 import { usePortfolioStore } from '../store/portfolioStore';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../api/client';
 
 export default function AdvisorPage() {
-  const { portfolio, fetchPortfolio, loading } = usePortfolioStore();
+  const [advice, setAdvice] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchPortfolio(); }, [fetchPortfolio]);
+  useEffect(() => {
+    const fetchAdvice = async () => {
+      try {
+        const { data } = await api.get('/portfolio/advisor');
+        setAdvice(data);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAdvice();
+  }, []);
 
-  if (loading) return <div className="p-8 text-text-muted animate-pulse font-medium">Analyzing Portfolio...</div>;
+  if (!advice) return <div className="p-8 text-text-muted animate-pulse font-medium">No advice metrics generated yet.</div>;
 
-  const pnl = portfolio?.totalProfitLoss || 0;
-  const score = pnl > 0 ? 86 : 64;
+  const score = advice.score || 0;
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -35,20 +48,12 @@ export default function AdvisorPage() {
           <h3 className={`mt-8 font-black text-2xl uppercase tracking-widest ${score > 75 ? 'text-primary' : 'text-danger'}`}>{score > 75 ? 'Excellent' : 'Needs Attention'}</h3>
         </div>
 
-        <div className="md:col-span-2 space-y-6 flex flex-col">
-          <div className="bg-bg-card border border-bg-surface p-8 rounded-3xl shadow-xl flex items-start group flex-1 hover:border-danger/30 transition">
-            <div className="bg-danger/10 p-5 rounded-2xl mr-6 group-hover:scale-110 transition shrink-0"><AlertTriangle className="text-danger" size={32}/></div>
-            <div>
-              <h3 className="font-black text-2xl mb-2 text-text-primary tracking-tight">Over-exposed to IT Sector</h3>
-              <p className="text-text-muted text-base leading-relaxed">IT makes up 45% of your portfolio holdings. Consider diversifying into Banking and Energy sectors over the next quarter to mitigate structural risk.</p>
-            </div>
-          </div>
-
+        <div className="md:col-span-2 space-y-6 flex flex-col justify-center">
           <div className="bg-bg-card border border-bg-surface p-8 rounded-3xl shadow-xl flex items-start group flex-1 hover:border-primary/30 transition">
-            <div className="bg-primary/10 p-5 rounded-2xl mr-6 group-hover:scale-110 transition shrink-0"><TrendingUp className="text-primary" size={32}/></div>
+            <div className="bg-primary/10 p-5 rounded-2xl mr-6 group-hover:scale-110 transition shrink-0"><AlertTriangle className="text-primary" size={32}/></div>
             <div>
-              <h3 className="font-black text-2xl mb-2 text-text-primary tracking-tight">Strong Upward Momentum</h3>
-              <p className="text-text-muted text-base leading-relaxed">Your Reliance holding has crossed the 50-day moving average on high volume. Recompute limits or hold for extended cyclical gains.</p>
+              <h3 className="font-black text-2xl mb-2 text-text-primary tracking-tight">AI Health Summary</h3>
+              <p className="text-text-muted text-base leading-relaxed">{advice.healthSummary || "No health summary provided."}</p>
             </div>
           </div>
         </div>
@@ -57,16 +62,12 @@ export default function AdvisorPage() {
       <div className="bg-bg-card border border-bg-surface rounded-3xl shadow-xl p-10 mt-8">
         <h3 className="font-black text-xl mb-8 uppercase tracking-widest text-text-primary border-b border-bg-surface pb-5 flex items-center"><ShieldCheck className="mr-3 text-primary" size={28}/> Recommended Actions</h3>
         <div className="space-y-5">
-          {[
-            { action: 'Scale down TCS', reason: 'High valuation and sectoral over-exposure. Consider taking 20% profits.', type: 'sell' },
-            { action: 'Accumulate HDFCBANK', reason: 'Trading below intrinsic value. Good entry point for long-term compounding.', type: 'buy' },
-            { action: 'Hold RELIANCE', reason: 'Solid upcoming fundamentals, keep observing quarterly results.', type: 'hold' }
-          ].map((rec, i) => (
+          {(advice.actions || []).map((rec, i) => (
             <div key={i} className="flex justify-between items-center bg-[#0A0E1A] border border-bg-surface p-6 rounded-2xl hover:border-primary/40 transition group cursor-pointer shadow-inner">
               <div className="flex items-center">
                 <CheckCircle className="text-text-muted mr-6 group-hover:text-primary transition" size={24}/>
                 <div>
-                  <h4 className="font-black text-xl text-text-primary mb-1 tracking-tight group-hover:text-primary transition">{rec.action}</h4>
+                  <h4 className="font-black text-xl text-primary transition mb-1 tracking-tight group-hover:text-primary transition">{rec.action} <span className={`text-xs ml-2 uppercase px-2 py-0.5 rounded ${rec.type === 'buy' ? 'bg-green-500/10 text-green-500' : rec.type === 'sell' ? 'bg-red-500/10 text-red-500' : 'bg-yellow-500/10 text-yellow-500'}`}>{rec.type}</span></h4>
                   <p className="text-text-muted text-base font-medium">{rec.reason}</p>
                 </div>
               </div>

@@ -18,6 +18,8 @@ import WatchlistPage from './pages/WatchlistPage';
 import ChatbotPage from './pages/ChatbotPage';
 import AdvisorPage from './pages/AdvisorPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import BacktestPage from './pages/BacktestPage';
+import AIPredictorPage from './pages/AIPredictorPage';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -55,7 +57,9 @@ function App() {
           <Route path="/wallet" element={<WalletPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/advisor" element={<AdvisorPage />} />
+          <Route path="/predictor" element={<AIPredictorPage />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
+          <Route path="/backtest" element={<BacktestPage />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/dashboard" />} />

@@ -2,7 +2,18 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useThemeStore } from '../store/themeStore';
-import { Bot, TrendingUp, ShieldCheck, Zap, Moon, Sun, ArrowRight } from 'lucide-react';
+import { Bot, TrendingUp, ShieldCheck, Zap, Moon, Sun, ArrowRight, Github, Twitter, Linkedin, Activity, Code } from 'lucide-react';
+
+const MOCK_TICKERS = [
+  { symbol: "RELIANCE", price: "2950.40", change: "+1.2%" },
+  { symbol: "TCS", price: "4120.15", change: "-0.4%" },
+  { symbol: "HDFCBANK", price: "1480.90", change: "+2.1%" },
+  { symbol: "INFY", price: "1650.00", change: "+0.8%" },
+  { symbol: "ICICIBANK", price: "1050.25", change: "+1.5%" },
+  { symbol: "SBI", price: "760.30", change: "-1.1%" },
+  { symbol: "BAJFINANCE", price: "7200.50", change: "+3.4%" },
+  { symbol: "ITC", price: "430.75", change: "+0.2%" },
+];
 
 export default function LandingPage() {
   const { theme, toggleTheme, initTheme } = useThemeStore();
@@ -38,8 +49,23 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      {/* Scrolling Ticker (Below Nav) */}
+      <div className="pt-20 bg-bg-dark border-b border-bg-surface overflow-hidden whitespace-nowrap flex relative">
+        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-bg-dark to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-bg-dark to-transparent z-10 pointer-events-none"></div>
+        <div className="flex w-max animate-marquee space-x-12 py-3 px-6 hover:[animation-play-state:paused]">
+          {[...MOCK_TICKERS, ...MOCK_TICKERS, ...MOCK_TICKERS].map((tick, i) => (
+            <div key={i} className="inline-flex items-center space-x-3 font-mono text-sm tracking-wide">
+              <span className="font-extrabold text-text-primary">{tick.symbol}</span>
+              <span className="text-text-muted">₹{tick.price}</span>
+              <span className={tick.change.startsWith('+') ? 'text-green-500 font-bold' : 'text-red-500 font-bold'}>{tick.change}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32">
+      <div className="relative pt-8 pb-20 lg:pt-12 lg:pb-32">
         {/* Abstract Background Shapes */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50 animate-pulse"></div>
         <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] mix-blend-screen opacity-50"></div>
@@ -112,6 +138,61 @@ export default function LandingPage() {
           </Link>
         </div>
       </div>
+
+      {/* Footer System */}
+      <footer className="bg-bg-card border-t border-bg-surface pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 lg:gap-8 mb-16">
+            <div className="md:col-span-1">
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-8 h-8 bg-primary/20 flex items-center justify-center rounded-lg border border-primary/50">
+                   <Zap className="text-primary" size={18}/>
+                </div>
+                <span className="font-black text-xl tracking-tighter">FinovaX</span>
+              </div>
+              <p className="text-text-muted text-sm font-medium leading-relaxed mb-6">
+                Institutional-grade technology, bringing advanced quantitative analytics and machine learning directly to retail traders in India.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-black text-text-primary tracking-widest uppercase text-xs mb-6">Platform</h4>
+              <ul className="space-y-4">
+                <li><Link to="/trade" className="text-text-muted text-sm hover:text-primary transition font-medium">Terminal Edge</Link></li>
+                <li><Link to="/backtest" className="text-text-muted text-sm hover:text-primary transition font-medium">Backtesting Engine</Link></li>
+                <li><Link to="/advisor" className="text-text-muted text-sm hover:text-primary transition font-medium flex items-center">AI Advisor <span className="ml-2 bg-primary/20 text-primary text-[10px] px-1.5 py-0.5 rounded font-bold">NEW</span></Link></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Market Feeds</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-black text-text-primary tracking-widest uppercase text-xs mb-6">Resources</h4>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Documentation</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">API Endpoints</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Server Status</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium mt-4 flex items-center"><Activity size={14} className="mr-2 text-green-500"/> All systems functional</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-black text-text-primary tracking-widest uppercase text-xs mb-6">Company</h4>
+              <ul className="space-y-4">
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">About Us</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Careers</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Privacy Policy</a></li>
+                <li><a href="#" className="text-text-muted text-sm hover:text-primary transition font-medium">Terms of Service</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-bg-surface flex flex-col md:flex-row justify-center items-center">
+            <p className="text-text-muted text-sm font-medium mb-4 md:mb-0">
+              © {new Date().getFullYear()} FinovaX Trading Systems. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
 
     </div>
   );

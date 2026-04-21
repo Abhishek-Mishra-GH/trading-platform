@@ -15,6 +15,7 @@ const watchlistRoutes = require('./src/routes/watchlist');
 const walletRoutes = require('./src/routes/wallet');
 const chatbotRoutes = require('./src/routes/chatbot');
 const analyticsRoutes = require('./src/routes/analytics');
+const backtestRoutes = require('./src/routes/backtest');
 const { handleStripeWebhook } = require('./src/controllers/walletController');
 
 const app = express();
@@ -42,6 +43,7 @@ app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/backtest', backtestRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

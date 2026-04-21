@@ -44,10 +44,20 @@ html, body, #root { height: 100%; margin: 0; padding: 0; }
 body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

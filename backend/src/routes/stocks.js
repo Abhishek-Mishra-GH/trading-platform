@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const marketDataService = require('../services/marketDataService');
+const aiService = require('../services/aiService');
 
 // Search stocks (real NSE search)
 router.get('/search', async (req, res) => {
@@ -60,6 +61,39 @@ router.get('/:symbol/history', async (req, res) => {
 router.get('/:symbol/news', async (req, res) => {
   try { res.json(await marketDataService.getMarketNews(req.params.symbol)); }
   catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// AI Recommendation
+router.get('/:symbol/recommendation', async (req, res) => {
+  try {
+    const symbol = req.params.symbol;
+    const [quote, profile, news] = await Promise.all([
+      marketDataService.getQuote(symbol),
+      marketDataService.getCompanyProfile(symbol),
+      marketDataService.getMarketNews(symbol)
+    ]);
+    const recommendation = await aiService.generateRecommendation(symbol, quote, profile, news);
+    res.json(recommendation);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Deep AI Prediction
+router.get('/:symbol/deep-prediction', async (req, res) => {
+  try {
+    const symbol = req.params.symbol;
+    const [quote, profile, news, history] = await Promise.all([
+      marketDataService.getQuote(symbol),
+      marketDataService.getCompanyProfile(symbol),
+      marketDataService.getMarketNews(symbol),
+      marketDataService.getHistoricalData(symbol, '3mo', '1d')
+    ]);
+    const prediction = await aiService.getDeepStockPrediction(symbol, quote, profile, news, history);
+    res.json(prediction);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;

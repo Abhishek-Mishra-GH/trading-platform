@@ -12,6 +12,8 @@ const navItems = [
   { to: '/watchlist', icon: Eye, label: 'Watchlist' },
   { to: '/wallet', icon: Wallet, label: 'Funds' },
   { to: '/analytics', icon: BarChart2, label: 'Analytics' },
+  { to: '/predictor', icon: Zap, label: 'AI Predictor' },
+  { to: '/backtest', icon: TrendingUp, label: 'Backtest' },
   { to: '/chatbot', icon: Bot, label: 'AI Chat' },
 ];
 
